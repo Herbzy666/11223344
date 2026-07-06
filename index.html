@@ -1,0 +1,298 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>哲人塔罗 · 26型人格测评</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif}
+body{min-height:100vh;background:#0a0a12;display:flex;justify-content:center;align-items:flex-start;padding:14px}
+.stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 4s ease-in-out infinite}
+@keyframes twinkle{0%,100%{opacity:0.1}50%{opacity:0.6}}
+.container{width:100%;max-width:640px;position:relative;z-index:1;background:rgba(18,18,30,0.92);backdrop-filter:blur(24px);border-radius:28px;border:1px solid rgba(180,160,120,0.12);padding:28px 22px;margin:8px auto;box-shadow:0 30px 60px rgba(0,0,0,0.5)}
+.screen{display:none;flex-direction:column;gap:16px}
+.screen.active{display:flex}
+.title{text-align:center;color:#e8dcc8;font-size:24px;font-weight:700;letter-spacing:3px}
+.title span{background:linear-gradient(135deg,#c9a84c,#e8dcc8,#c9a84c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:rgba(200,185,160,0.45);font-size:13px;line-height:1.6}
+.badge{display:inline-block;padding:4px 14px;border:1px solid rgba(200,175,130,0.25);border-radius:14px;color:#c9a84c;font-size:11px;letter-spacing:1px;margin:0 auto}
+.progress-bar{width:100%;height:3px;background:rgba(200,175,130,0.08);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#c9a84c,#8b6f2e);border-radius:2px;transition:width 0.4s ease}
+.q-hdr{display:flex;justify-content:space-between;align-items:center;color:rgba(200,185,160,0.35);font-size:12px}
+.q-axis{color:#c9a84c;font-size:11px;letter-spacing:1px;border:1px solid rgba(200,175,130,0.12);padding:2px 10px;border-radius:10px}
+.q-text{color:#e8dcc8;font-size:17px;font-weight:500;line-height:1.6;min-height:44px;padding:2px 0}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt-btn{width:100%;padding:11px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(200,175,130,0.08);border-radius:10px;color:rgba(232,220,200,0.65);font-size:13px;cursor:pointer;transition:all 0.25s;text-align:left;line-height:1.4}
+.opt-btn:hover{background:rgba(200,175,130,0.06);border-color:rgba(200,175,130,0.25);transform:translateX(4px)}
+.opt-btn.selected{background:rgba(200,175,130,0.1);border-color:#c9a84c;color:#e8dcc8}
+.opt-btn .opt-label{color:rgba(200,175,130,0.4);font-size:11px;margin-right:8px;display:inline-block;min-width:20px}
+.nav-btn{width:100%;padding:13px;background:linear-gradient(135deg,rgba(200,175,130,0.12),rgba(139,111,46,0.12));border:1px solid rgba(200,175,130,0.18);border-radius:12px;color:#c9a84c;font-size:15px;cursor:pointer;transition:all 0.3s;opacity:0;pointer-events:none;letter-spacing:1px}
+.nav-btn.show{opacity:1;pointer-events:auto}
+.nav-btn:hover{background:rgba(200,175,130,0.18);transform:translateY(-2px)}
+.inv{color:rgba(200,100,80,0.6);font-size:13px;text-align:center;display:none}
+.rs-wrap{display:flex;flex-direction:column;align-items:center;gap:13px}
+.card-box{perspective:1000px;width:180px;height:280px;cursor:default}
+.card-inner{position:relative;width:100%;height:100%;transition:transform 1s cubic-bezier(0.4,0,0.2,1);transform-style:preserve-3d}
+.card-box.flip .card-inner{transform:rotateY(180deg)}
+.cf,.cb{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:12px;overflow:hidden}
+.cb{background:linear-gradient(135deg,#1a1a2e,#16213e);border:2px solid #c9a84c;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.cb-p{font-size:50px;opacity:0.2;color:#c9a84c;font-family:serif;letter-spacing:6px}
+.cb-t{color:rgba(200,175,130,0.3);font-size:10px;letter-spacing:2px}
+.cf{background:linear-gradient(180deg,#1c1720,#2a1f2e);border:2px solid #c9a84c;transform:rotateY(180deg);padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px}
+.cf-c{font-size:36px;font-weight:800;background:linear-gradient(135deg,#c9a84c,#e8dcc8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:3px;line-height:1}
+.cf-ti{color:#e8dcc8;font-size:14px;letter-spacing:1px}
+.cf-ln{width:50%;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent)}
+.cf-tg{color:rgba(200,175,130,0.5);font-size:10px;letter-spacing:1px;text-align:center}
+.cf-n{color:rgba(200,175,130,0.25);font-size:9px;position:absolute;bottom:8px}
+@keyframes glow{0%,100%{box-shadow:0 0 12px rgba(200,175,130,0.08)}50%{box-shadow:0 0 25px rgba(200,175,130,0.15)}}
+.card-box.flip .cf{animation:glow 3s ease-in-out infinite}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fu{animation:fadeUp 0.5s ease forwards;opacity:0}
+.fu1{animation-delay:0.1s}.fu2{animation-delay:0.4s}.fu3{animation-delay:0.7s}.fu4{animation-delay:1.0s}.fu5{animation-delay:1.3s}.fu6{animation-delay:1.6s}
+.card-desc{border:1px solid rgba(200,175,130,0.06);border-radius:12px;padding:14px;width:100%;background:rgba(255,255,255,0.02)}
+.card-desc p{color:rgba(232,220,200,0.55);font-size:13px;line-height:1.7}
+.tier-box{background:rgba(255,255,255,0.02);border-radius:12px;padding:12px 14px;border:1px solid rgba(200,175,130,0.05);width:100%}
+.tier-row{display:flex;align-items:center;padding:5px 0;gap:8px}
+.tier-l{color:rgba(200,185,160,0.35);font-size:10px;min-width:52px;flex-shrink:0}
+.tier-bars{display:flex;gap:4px;flex:1}
+.tier-seg{flex:1;height:8px;border-radius:4px;background:rgba(200,175,130,0.06);border:1px solid rgba(200,175,130,0.08);transition:all 0.4s}
+.tier-seg.on{background:rgba(200,175,130,0.25);border-color:#c9a84c;box-shadow:0 0 8px rgba(200,175,130,0.12)}
+.guess-box{width:100%;display:flex;gap:12px}
+.guess-item{flex:1;background:rgba(255,255,255,0.02);border:1px solid rgba(200,175,130,0.06);border-radius:10px;padding:12px;text-align:center}
+.guess-label{color:rgba(200,185,160,0.3);font-size:10px;letter-spacing:1px;margin-bottom:4px}
+.guess-val{color:#c9a84c;font-size:18px;font-weight:600}
+.guess-sub{color:rgba(200,185,160,0.4);font-size:11px;margin-top:2px}
+.quote-box{width:100%;background:rgba(200,175,130,0.04);border-left:2px solid rgba(200,175,130,0.2);border-radius:4px 10px 10px 4px;padding:14px 16px}
+.quote-text{color:rgba(232,220,200,0.5);font-size:13px;line-height:1.7;font-style:italic}
+.quote-author{color:rgba(200,175,130,0.3);font-size:11px;margin-top:6px;text-align:right}
+.fortune-box{width:100%;background:rgba(255,255,255,0.015);border:1px solid rgba(200,175,130,0.05);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.fortune-icon{font-size:28px}
+.fortune-text{flex:1}
+.fortune-title{color:#c9a84c;font-size:11px;letter-spacing:1px;margin-bottom:4px}
+.fortune-body{color:rgba(232,220,200,0.45);font-size:12px;line-height:1.5}
+.dim-detail{width:100%;background:rgba(255,255,255,0.015);border:1px solid rgba(200,175,130,0.04);border-radius:10px;padding:12px 14px}
+.dim-detail h4{color:#c9a84c;font-size:12px;letter-spacing:1px;margin-bottom:8px}
+.dim-detail p{color:rgba(232,220,200,0.5);font-size:12px;line-height:1.6}
+.bot-row{display:flex;gap:10px;width:100%}
+.bot-btn{flex:1;padding:11px;background:rgba(255,255,255,0.02);border:1px solid rgba(200,175,130,0.1);border-radius:12px;color:rgba(200,185,160,0.45);font-size:13px;cursor:pointer;transition:all 0.3s;text-align:center;letter-spacing:1px}
+.bot-btn:hover{background:rgba(200,175,130,0.07);border-color:rgba(200,175,130,0.2);color:#c9a84c}
+.str-btn{padding:14px 36px;background:linear-gradient(135deg,rgba(200,175,130,0.1),rgba(139,111,46,0.1));border:1px solid rgba(200,175,130,0.2);border-radius:14px;color:#c9a84c;font-size:15px;cursor:pointer;transition:all 0.3s;letter-spacing:2px;margin:6px auto 0}
+.str-btn:hover{background:rgba(200,175,130,0.18);transform:translateY(-3px);box-shadow:0 8px 25px rgba(200,175,130,0.08)}
+.floating-share{position:fixed;bottom:24px;right:24px;z-index:50;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,rgba(200,175,130,0.15),rgba(139,111,46,0.15));border:1px solid rgba(200,175,130,0.25);color:#c9a84c;font-size:22px;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(12px);box-shadow:0 4px 16px rgba(0,0,0,0.3)}
+.floating-share:hover{background:rgba(200,175,130,0.25);transform:scale(1.08);box-shadow:0 6px 24px rgba(200,175,130,0.15)}
+.overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:999;display:none;justify-content:center;align-items:center;padding:20px}
+.overlay.show{display:flex}
+.modal{background:rgba(20,18,30,0.96);border:1px solid rgba(200,175,130,0.15);border-radius:20px;padding:28px 24px;max-width:400px;width:100%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-title{text-align:center;color:#e8dcc8;font-size:17px;letter-spacing:2px;margin-bottom:16px}
+.modal-close{position:absolute;top:12px;right:16px;color:rgba(200,185,160,0.3);font-size:22px;cursor:pointer;background:none;border:none;line-height:1}
+.modal-close:hover{color:#c9a84c}
+.qr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0}
+.qr-box{background:#fff;padding:12px;border-radius:12px;display:inline-flex}
+.qr-hint{color:rgba(200,185,160,0.35);font-size:11px;text-align:center;line-height:1.5}
+.share-card{background:linear-gradient(180deg,#1c1720,#2a1f2e);border:1px solid rgba(200,175,130,0.15);border-radius:12px;padding:16px;margin:12px 0;text-align:center}
+.share-card .sc-code{font-size:28px;font-weight:800;background:linear-gradient(135deg,#c9a84c,#e8dcc8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:2px}
+.share-card .sc-name{color:#e8dcc8;font-size:16px;margin:4px 0}
+.share-card .sc-line{width:40%;height:1px;background:linear-gradient(90deg,transparent,#c9a84c,transparent);margin:6px auto}
+.share-card .sc-detail{color:rgba(200,185,160,0.4);font-size:12px;line-height:1.6}
+.share-card .sc-tag{color:rgba(200,175,130,0.25);font-size:10px;margin-top:6px;letter-spacing:1px}
+.share-action{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.share-btn{width:100%;padding:13px;border-radius:12px;font-size:14px;cursor:pointer;transition:all 0.3s;border:none;letter-spacing:1px;text-decoration:none;display:inline-block;text-align:center}
+.share-btn.primary{background:linear-gradient(135deg,rgba(200,175,130,0.15),rgba(139,111,46,0.15));border:1px solid rgba(200,175,130,0.2);color:#c9a84c}
+.share-btn.primary:hover{background:rgba(200,175,130,0.2)}
+.share-btn.secondary{background:rgba(255,255,255,0.03);border:1px solid rgba(200,175,130,0.08);color:rgba(200,185,160,0.5)}
+.share-btn.secondary:hover{background:rgba(200,175,130,0.06);color:#c9a84c}
+.share-btn.success{background:#07c160;border:1px solid #07c160;color:#fff;padding:13px 20px}
+.share-btn.success:hover{background:#06ad56}
+.share-link-input{width:100%;padding:10px 12px;background:rgba(255,255,255,0.04);border:1px solid rgba(200,175,130,0.1);border-radius:8px;color:rgba(232,220,200,0.5);font-size:12px;text-align:center;margin-bottom:8px;outline:none}
+.share-link-input:focus{border-color:rgba(200,175,130,0.3);color:#e8dcc8}
+.toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(30,28,40,0.95);border:1px solid rgba(200,175,130,0.15);border-radius:12px;padding:16px 24px;color:#e8dcc8;font-size:14px;z-index:1000;display:none;text-align:center;backdrop-filter:blur(10px);box-shadow:0 10px 30px rgba(0,0,0,0.3);animation:fadeUp 0.3s ease}
+</style></head><body>
+<div class="stars" id="stars"></div>
+<div class="container" id="app">
+<div class="screen active" id="screen-home">
+<div class="title">🃏 <span>哲人塔罗</span></div>
+<div style="text-align:center;margin:4px 0"><span class="badge">荣格 · 佛洛依德 · 马克思 · 黑格尔</span></div>
+<div class="subtitle">30道深度选择 · 5个哲学维度 · 26种人格原型</div>
+<div style="text-align:center;margin:4px 0;display:flex;gap:12px;justify-content:center">
+<button class="str-btn" onclick="startGame()" style="margin:0">✦ 翻开命运 ✦</button>
+<button class="str-btn" onclick="openShare()" style="margin:0;font-size:13px;padding:14px 20px">📤 分享</button>
+</div>
+<div class="subtitle" style="margin-top:12px;font-size:10px;color:rgba(200,185,160,0.15)">基于哲学人格模型 · 结果仅供自我探索参考</div>
+</div>
+<div class="screen" id="screen-quiz">
+<div class="progress-bar"><div class="progress-fill" id="pf" style="width:0%"></div></div>
+<div class="q-hdr"><span id="qi">第 1 / 30 问</span><span class="q-axis" id="qa">荣格 · 能量</span></div>
+<div class="q-text" id="qt">加载中...</div>
+<div class="opts" id="ow"></div>
+<div class="inv" id="iv">✦ 请选择一个选项</div>
+<button class="nav-btn" id="nb" onclick="nq()">下一问 →</button>
+</div>
+<div class="screen" id="screen-result">
+<div class="title" style="font-size:18px">✦ 你的哲学人格 ✦</div>
+<div class="rs-wrap">
+<div class="card-box" id="cardBox"><div class="card-inner">
+<div class="cb"><div class="cb-p">☿</div><div class="cb-t">PHILOSOPHIA</div></div>
+<div class="cf"><span class="cf-c" id="rc">ID</span><div class="cf-ln"></div><div class="cf-ti" id="rt">本我</div><div class="cf-ln" style="width:35%"></div><div class="cf-tg" id="rg">Die Es</div><span class="cf-n" id="rn">No.1 / 26</span></div>
+</div></div>
+<div class="card-desc fu fu1"><p id="rd">加载中...</p></div>
+<div class="tier-box fu fu2" id="tw"><div style="color:#c9a84c;font-size:11px;letter-spacing:1px;margin-bottom:4px">✦ 五维倾向</div><div id="tierRows"></div></div>
+<div class="guess-box fu fu3">
+<div class="guess-item"><div class="guess-label">✦ MBTI</div><div class="guess-val" id="gm">ENFP</div><div class="guess-sub" id="gs">竞选者</div></div>
+<div class="guess-item"><div class="guess-label">✦ 星座</div><div class="guess-val" id="zodiacVal">♊ 双子</div><div class="guess-sub" id="zodiacSub">好奇多变</div></div>
+</div>
+<div class="quote-box fu fu4"><div class="quote-text" id="qtText">加载中...</div><div class="quote-author" id="qtAuthor">—— 某某</div></div>
+<div class="fortune-box fu fu5"><div class="fortune-icon" id="fIcon">☀️</div><div class="fortune-text"><div class="fortune-title">✦ 今日哲运</div><div class="fortune-body" id="fBody">加载中...</div></div></div>
+<div class="dim-detail fu fu6" id="dd"><h4>✦ 维度详解</h4><p id="ddText">加载中...</p></div>
+<div class="bot-row fu fu6">
+<button class="bot-btn" onclick="restart()">🔄 再次翻开</button>
+<button class="bot-btn" onclick="openShare()">📤 分享</button>
+</div>
+</div></div></div>
+<button class="floating-share" onclick="openShare()" title="分享到微信">📤</button>
+<div class="overlay" id="shareOverlay">
+<div class="modal">
+<button class="modal-close" onclick="closeShare()">✕</button>
+<div class="modal-title">✦ 分享到微信 ✦</div>
+<div class="qr-wrap"><div class="qr-box" id="qrBox"></div><div class="qr-hint">📱 截图分享给好友 · 或用微信扫一扫打开</div></div>
+<input class="share-link-input" id="shareUrlInput" placeholder="当前页面URL，可修改" onchange="updateQR()">
+<div class="share-action">
+<button class="share-btn success" onclick="copyWxLink()">💬 复制微信分享文案</button>
+<button class="share-btn primary" onclick="copyPageLink()">🔗 复制页面链接</button>
+</div>
+<div class="share-card" id="shareCard">
+<div class="sc-code" id="scCode">ID</div>
+<div class="sc-name" id="scName">本我</div>
+<div class="sc-line"></div>
+<div class="sc-detail" id="scDetail">MBTI: ENFP · 星座: 双子</div>
+<div class="sc-tag">哲人塔罗 · 26型人格测评</div>
+</div>
+<div class="share-action">
+<button class="share-btn primary" onclick="copyResult()">📋 复制结果到剪贴板</button>
+<button class="share-btn secondary" onclick="showToast('📸 截图即可分享给好友')">📷 截取分享卡片</button>
+</div>
+</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const starsEl=document.getElementById("stars");
+for(let i=0;i<80;i++){const s=document.createElement("div");s.className="star";s.style.left=Math.random()*100+"%";s.style.top=Math.random()*100+"%";s.style.width=s.style.height=(Math.random()*2+1)+"px";s.style.animationDelay=Math.random()*5+"s";s.style.animationDuration=(Math.random()*3+2)+"s";starsEl.appendChild(s);}
+const DIMS=[
+  {key:"E/I",label:"荣格·能量",a:"外向 E",b:"内向 I"},
+  {key:"ID/EG",label:"佛洛依德·驱力",a:"本我 ID",b:"自我 EG"},
+  {key:"MA/SV",label:"马克思·世界观",a:"唯物 MA",b:"上层 SV"},
+  {key:"DI/AB",label:"黑格尔·辩证",a:"辩证 DI",b:"绝对 AB"},
+  {key:"TH/PR",label:"实践导向",a:"理论 TH",b:"实践 PR"}
+];
+const dirMap={E:0,I:0,ID:1,EG:1,MA:2,SV:2,DI:3,AB:3,TH:4,PR:4};
+const questions=[
+  {q:"独自度过一整天会让我感到充实而满足",d:"E/I",dir:1},{q:"在陌生人聚会中我往往是主动说话的那个",d:"E/I",dir:-1},{q:"遇到困难时我倾向于找人讨论而非自己闷着",d:"E/I",dir:-1},{q:"大型社交活动后我需要独处来恢复精力",d:"E/I",dir:1},{q:"我更喜欢需要多人协作的工作环境",d:"E/I",dir:-1},{q:"我通常在表达想法之前会先在心里仔细过滤",d:"E/I",dir:1},
+  {q:"面对诱惑我很难控制住自己",d:"ID/EG",dir:-1},{q:"做决定时我更看重现实条件的约束",d:"ID/EG",dir:1},{q:"我认为及时行乐比长远规划更重要",d:"ID/EG",dir:-1},{q:"我常常在做决定前反复权衡各种后果",d:"ID/EG",dir:1},{q:"我做事更多凭直觉和冲动而非理性分析",d:"ID/EG",dir:-1},{q:"规则和制度对我来说是必要的约束",d:"ID/EG",dir:1},
+  {q:"我认为物质条件决定了一个人的精神世界",d:"MA/SV",dir:-1},{q:"思想文化的进步比技术革新更能改变社会",d:"MA/SV",dir:1},{q:"一个人的处境主要由经济条件决定",d:"MA/SV",dir:-1},{q:"教育比物质帮助更能改变一个人的命运",d:"MA/SV",dir:1},{q:"解决问题要从最实际的经济层面入手",d:"MA/SV",dir:-1},{q:"我关注宏观的理念和制度多于具体细节",d:"MA/SV",dir:1},
+  {q:"我认为真理是随着时代不断变化的",d:"DI/AB",dir:-1},{q:"我相信存在永恒不变的客观规律",d:"DI/AB",dir:1},{q:"矛盾和冲突常常能推动事情进步",d:"DI/AB",dir:-1},{q:"我更喜欢确定和稳定的生活状态",d:"DI/AB",dir:1},{q:"世界的本质是不断变化的动态过程",d:"DI/AB",dir:-1},{q:"万事万物都有其固有的本质和规律",d:"DI/AB",dir:1},
+  {q:"学新东西我习惯先搞懂理论再动手",d:"TH/PR",dir:-1},{q:"直接上手做比先看书学得快",d:"TH/PR",dir:1},{q:"面对复杂项目我喜欢先做详细计划",d:"TH/PR",dir:-1},{q:"我倾向于边做边调整而非一步到位",d:"TH/PR",dir:1},{q:"了解事物的底层原理对我来说很重要",d:"TH/PR",dir:-1},{q:"在实践中遇到问题再去查资料最高效",d:"TH/PR",dir:1}
+];
+const opts=["非常同意","比较同意","中立","不太同意","非常不同意"];const optVals=[2,1,0,-1,-2];
+const archs=[
+  {code:"ID",title:"本我",sub:"Die Es",quote:"本我所在之处，自我也必当到场。","qBy":"—— 弗洛伊德",desc:"你听从本能的声音。弗洛伊德认为人的一切行为都源于无意识的冲动——你不加掩饰地活着，真实而直接。在人群中你是那股原始的生命力，不伪装、不压抑。你相信直觉的力量大于理性的计算。",vec:[0,0,0,0,0]},
+  {code:"THE",title:"正题",sub:"Thesis",quote:"凡是合乎理性的都是现实的，凡是现实的都是合乎理性的。","qBy":"—— 黑格尔",desc:"你是那个率先发声的人。黑格尔的正题象征着一切运动的起点——你敢于立论，敢于说出自己的立场。理性是你的武器，清晰表达是你的天赋。你不怕做第一个，只怕没有开始。",vec:[0,1,1,0,0]},
+  {code:"ANS",title:"阿尼姆斯",sub:"Animus",quote:"我宁愿是完整的，也不愿是完美的。","qBy":"—— 荣格",desc:"你内在有一股坚定的精神力量。荣格的阿尼姆斯是女性心中的男性原型——果断、理性、有主见。你善于在混乱中保持清醒，用内在的信念撑起一片天。沉默但有力量。",vec:[2,0,0,0,0]},
+  {code:"EGO",title:"自我",sub:"Ego",quote:"在焦虑面前，自我是真正的恐惧之所在。","qBy":"—— 弗洛伊德",desc:"你是现实世界的调停者。弗洛伊德的自我在欲望与道德之间寻找平衡——你不极端、懂妥协、知道什么时候该进什么时候该退。你是那个让事态平稳运转的人，社交中的润滑剂。",vec:[0,2,0,0,0]},
+  {code:"SYN",title:"合题",sub:"Synthesis",quote:"真理是全体。","qBy":"—— 黑格尔",desc:"你是矛盾的调和者。黑格尔的合题是正反之后的统一——你能看到对立双方的合理性，擅长把冲突转化成共识。你不是和稀泥，你是真懂怎么让大家走到一起。天生的外交家。",vec:[0,2,1,0,1]},
+  {code:"MAT",title:"唯物",sub:"Materialism",quote:"哲学家们只是用不同的方式解释世界，而问题在于改变世界。","qBy":"—— 马克思",desc:"你看问题永远从实际出发。马克思说物质决定意识——你相信眼前的东西比空谈更靠谱。不画饼、不忽悠，你解决问题的方式是脚踏实地地干。你是团队里那个问具体怎么做的人。",vec:[0,2,0,1,0]},
+  {code:"PRA",title:"实践",sub:"Praxis",quote:"实践是检验真理的唯一标准。","qBy":"—— 马克思",desc:"你是行动的代名词。马克思的实践哲学在你身上活过来了——你不等想明白再做，你做起来再想明白。你的信条是：干就完了。实践让你比别人更快拿到结果。",vec:[2,0,1,0,2]},
+  {code:"LIB",title:"解放",sub:"Liberation",quote:"每一个解放都是把人的世界和人的关系还给人自己。","qBy":"—— 马克思",desc:"你骨子里渴望自由，也渴望让更多人自由。马克思的解放理论是你的信仰——你不满于现状，相信人可以摆脱束缚、活得更有尊严。你是那个敢于打破规则的人。",vec:[0,2,2,1,1]},
+  {code:"WIL",title:"权力意志",sub:"Wille zur Macht",quote:"凡不能毁灭我的，必使我更强大。","qBy":"—— 尼采",desc:"尼采说你体内有一种不断超越自我的力量——你渴望成长、渴望变得更强。平庸让你窒息，超越才是你的本能。你不满足于还不错，你要的是最好。",vec:[0,2,2,1,2]},
+  {code:"ANI",title:"阿尼玛",sub:"Anima",quote:"你的潜意识指引着你的人生，而你称之为命运。","qBy":"—— 荣格",desc:"你内心柔软而敏感。荣格的阿尼玛是男性心中的女性原型——温柔、直觉、富有同理心。你懂情绪、懂艺术、懂那些说不清道不明的东西。你看到的世界比别人多一层色彩。",vec:[2,0,2,0,0]},
+  {code:"ATA",title:"反题",sub:"Antithesis",quote:"没有矛盾就没有进步。","qBy":"—— 黑格尔",desc:"你是那个提出问题的人。黑格尔的反题是推动进步的力量——你不满足于现状，总能发现既有秩序中的裂缝。批判是你的思考方式。你让人不舒服，但你需要存在。",vec:[2,2,0,0,1]},
+  {code:"BAS",title:"基础",sub:"Base",quote:"物质生活的生产方式制约着整个社会生活、政治生活和精神生活的过程。","qBy":"—— 马克思",desc:"你是那个打下地基的人。马克思说经济基础决定上层建筑——你相信一切宏大的东西都建立在扎实的根基上。你和虚的不来，只信实实在在的积累。稳，是你的标签。",vec:[0,0,0,1,2]},
+  {code:"ETR",title:"永恒轮回",sub:"Ewige Wiederkunft",quote:"人的一切，都要永远重现。","qBy":"—— 尼采",desc:"尼采说一切都会重来。你明白生命中有些课题需要反复面对，你不逃避循环，而是在重复中寻找意义。你看似在原地，实际上每一圈都在上升。你有常人所没有的耐心。",vec:[2,0,0,1,2]},
+  {code:"DIA",title:"辩证",sub:"Dialektik",quote:"对立的事物在它们的发展过程中会互相转化。","qBy":"—— 黑格尔",desc:"你活在矛盾之中，也活在矛盾之上。黑格尔的辩证法刻在你的思维方式里——你看到事物的正反两面，也知道如何向更高的层面跃迁。你是天生的战略家。",vec:[2,2,2,0,2]},
+  {code:"NIH",title:"虚无",sub:"Nihilismus",quote:"当你凝视深渊时，深渊也在凝视着你。","qBy":"—— 尼采",desc:"你见过深渊。尼采说上帝死了——你经历过意义的崩塌，但你没有倒下。真正的虚无主义者不是绝望的人，而是敢于直面荒诞后依然往前走的人。你的清醒是力量。",vec:[2,2,2,2,1]},
+  {code:"SUP",title:"超我",sub:"Uber-Ich",quote:"每个人的内心都有一个法庭。","qBy":"—— 弗洛伊德",desc:"你心里有一把尺子。弗洛伊德的超我是道德和理想的化身——你有自己的原则，不轻易妥协。不是古板，是你清楚底线在哪。你是那个在混乱中依然站稳的人。",vec:[2,2,0,1,0]},
+  {code:"THN",title:"死欲",sub:"Thanatos",quote:"唯有意识到我们终将死去，才能体会到活着的意义。","qBy":"—— 海德格尔",desc:"海德格尔说向死而生——你清醒地知道一切终将消逝，但这不影响你认真地活。你有一种冷峻的透彻，不骗自己、不糊弄生活。你的认真里有种悲壮的浪漫。",vec:[2,2,0,2,0]},
+  {code:"CGO",title:"我思",sub:"Cogito",quote:"我思故我在。","qBy":"—— 笛卡尔",desc:"笛卡尔说我思故我在——你的存在感来自于思考本身。你相信理性可以抵达真理，逻辑是你的信仰。遇到问题你的第一反应是：让我想想。你是那种把思考本身当作快乐的人。",vec:[0,2,2,2,2]},
+  {code:"SHD",title:"阴影",sub:"Shadow",quote:"没有人能通过忽视阴影而获得光明。","qBy":"—— 荣格",desc:"荣格说每个人都有一个黑暗面——你不否认它的存在。你知道真正的勇气不是无视黑暗，而是承认它、理解它、让它成为你的力量。你比大多数人都了解自己。",vec:[2,0,1,2,0]},
+  {code:"ALN",title:"异化",sub:"Entfremdung",quote:"工人同自己的劳动产品相异化。","qBy":"—— 马克思",desc:"你在这世界上感到某种疏离。马克思说的异化在你身上有回响——你总觉得自己和环境之间有隔阂。但这种疏离让你看得更清楚，想得更深。孤独是你的代价，也是你的天赋。",vec:[2,2,2,2,0]},
+  {code:"HUM",title:"人道",sub:"Humanitas",quote:"人是人的最高本质。","qBy":"—— 马克思",desc:"你相信人本身的价值。无论马克思的人道主义还是文艺复兴对人的赞颂——你始终把人的尊严放在第一位。你温和、包容、相信善意。你是那个愿意给人第二次机会的人。",vec:[2,0,2,2,2]},
+  {code:"VIS",title:"上层",sub:"Superstructure",quote:"不是人们的意识决定人们的存在，相反，是人们的社会存在决定人们的意识。","qBy":"—— 马克思",desc:"你是那个看得远的人。马克思的上层建筑是观念、文化、制度——你关注那些看不见但支配一切的力量。你擅长从宏观视角理解世界，在大家关注眼前时你已经看到了远方。",vec:[0,0,2,1,0]},
+  {code:"UTR",title:"功利",sub:"Utilitas",quote:"最大多数人的最大幸福是道德与立法的根本。","qBy":"—— 边沁",desc:"边沁问什么能带来最大幸福——你用实用主义的眼光衡量一切。不是冷血，是你相信好的东西应该让更多人受益。你的选择总是务实而有效的，你算得清但不算计。",vec:[0,0,0,2,1]},
+  {code:"ERA",title:"爱欲",sub:"Eros",quote:"爱是唯一值得为之奋斗的东西。","qBy":"—— 弗洛伊德",desc:"你的生命力旺盛得惊人。弗洛伊德的生本能——创造、连接、欢愉、成长。你热爱生活本身，你的存在本身就是一种肯定。你的热情有感染力，你活着就像在燃烧。",vec:[0,0,1,1,0]},
+  {code:"EXI",title:"存在",sub:"Existenz",quote:"人是注定要自由的，自由是人的宿命。","qBy":"—— 萨特",desc:"萨特说存在先于本质——你相信人是自由的，也是孤独的。你为自己做选择，也为自己负责。你不需要别人告诉你该怎么活。你用行动定义自己是谁。",vec:[2,0,2,1,1]},
+  {code:"ABS",title:"绝对精神",sub:"Absolute Geist",quote:"密涅瓦的猫头鹰只在黄昏时起飞。","qBy":"—— 黑格尔",desc:"你在追求某种终极的东西。黑格尔的绝对精神是终点也是起点——你不满足于碎片化的认知，你想看到全景。你是那个永远在路上的求道者。你的征途是星辰大海。",vec:[2,1,2,2,1]}
+];
+const zodiacs=[
+  {name:"白羊 ♈",sym:"冲动·进取",vec:[0,0,1,0,1]},{name:"金牛 ♉",sym:"务实·固执",vec:[0,2,0,1,0]},{name:"双子 ♊",sym:"好奇·多变",vec:[1,1,1,0,1]},{name:"巨蟹 ♋",sym:"敏感·保护",vec:[2,0,0,1,0]},{name:"狮子 ♌",sym:"自信·主导",vec:[0,1,0,0,0]},{name:"处女 ♍",sym:"分析·完美",vec:[1,2,0,1,0]},{name:"天秤 ♎",sym:"平衡·调和",vec:[1,1,1,1,1]},{name:"天蝎 ♏",sym:"深刻·极端",vec:[1,0,1,0,0]},{name:"射手 ♐",sym:"自由·探索",vec:[0,0,0,0,2]},{name:"摩羯 ♑",sym:"务实·纪律",vec:[1,2,0,1,1]},{name:"水瓶 ♒",sym:"理想·创新",vec:[0,0,2,0,1]},{name:"双鱼 ♓",sym:"梦幻·感性",vec:[2,0,0,0,1]}
+];
+const fortunes=[
+  {icon:"☀️",text:"今天宜独处思考，避免冲动消费。适合整理过去一周的计划。"},{icon:"🌙",text:"今晚灵感旺盛，适合创作或写点东西。注意不要熬夜太深。"},{icon:"💫",text:"今天会遇到有趣的陌生人，别错过任何一个对话的机会。"},{icon:"🌟",text:"你的直觉异常敏锐，相信第一感觉。重大决定可以今天做。"},{icon:"🌊",text:"情绪如潮水，顺其自然就好。不适合做太激进的投资。"},{icon:"🔥",text:"行动力爆棚的一天！把拖延最久的任务拿出来干掉。"},{icon:"🍃",text:"适合放空的一天。出去走走，换个环境可能会有新想法。"},{icon:"⚡",text:"今天可能会有突发事件，保持灵活。坏事也可能是转机。"},{icon:"🌈",text:"人际关系今日顺滑。适合道歉、和解或向某人表达感激。"},{icon:"🏔️",text:"目标感清晰的一天。适合制定中长期计划并迈出第一步。"},{icon:"🎭",text:"你今天可能需要扮演多个角色，别把自己弄丢了。"},{icon:"📖",text:"适合学习新东西。打开一个你收藏了很久但从没看过的资料。"},{icon:"🎵",text:"旋律能改变你的状态。今天适合边听音乐边工作。"},{icon:"🕯️",text:"安静的一天。不适合社交，但适合整理思绪和自己独处。"},{icon:"🌋",text:"压抑的情绪可能需要释放。找个安全的方式表达出来。"},{icon:"🪐",text:"宏观视角上线。今天适合从更高维度审视你当下的困境。"},{icon:"🔮",text:"第六感在线。如果你一直在犹豫一件事，今天会看到信号。"},{icon:"🏡",text:"家庭或亲密关系成为焦点。给在乎的人发条消息吧。"},{icon:"🌄",text:"早起有惊喜。今天试着比平时早起半小时。"},{icon:"🎯",text:"专注力极佳的一天。把最难啃的那块骨头在今天啃掉。"},{icon:"💭",text:"梦境可能给你答案。睡前在心里放一个问题。"},{icon:"🔄",text:"有些事情绕了一圈又回来了。这次用不一样的姿态面对。"},{icon:"🌱",text:"种一棵树最好的时间是十年前，其次是今天。开始吧。"},{icon:"⚖️",text:"需要做选择的时刻。列出利弊，然后相信你的直觉。"},{icon:"🎲",text:"适合冒一点可控的风险。不试试怎么知道？"},{icon:"🛡️",text:"内心需要建立边界。今天可以练习说不。"},{icon:"📮",text:"可能会收到意料之外的消息。保持开放心态。"},{icon:"🧩",text:"碎片信息需要整合。把最近学到的东西梳理一遍。"},{icon:"🎠",text:"放下紧绷的状态，今天允许自己幼稚一点。"},{icon:"💎",text:"你比自己想象的更有价值。别因为暂时的挫折否定自己。"}
+];
+const mbtiNames={INTJ:"建筑师",INTP:"逻辑学家",ENTJ:"指挥官",ENTP:"辩论家",INFJ:"提倡者",INFP:"调停者",ENFJ:"主人公",ENFP:"竞选者",ISTJ:"物流师",ISFJ:"守卫者",ESTJ:"总经理",ESFJ:"执政官",ISTP:"鉴赏家",ISFP:"探险家",ESTP:"企业家",ESFP:"表演者"};
+let ci=0,ans=[],sl=null,lastArch=null,lastMbti="",lastZodiac="";
+function startGame(){document.getElementById("screen-home").classList.remove("active");document.getElementById("screen-quiz").classList.add("active");ci=0;ans=[];rQ();}
+function rQ(){
+  const q=questions[ci];document.getElementById("pf").style.width=(ci/questions.length*100)+"%";
+  document.getElementById("qi").textContent="第 "+(ci+1)+" / "+questions.length+" 问";
+  const di=DIMS.find(d=>d.key===q.d);document.getElementById("qa").textContent=di?di.label:q.d;
+  document.getElementById("qt").textContent=q.q;const w=document.getElementById("ow");w.innerHTML="";sl=null;
+  document.getElementById("nb").classList.remove("show");document.getElementById("iv").style.display="none";
+  const lbls=["A","B","C","D","E"];
+  opts.forEach((t,i)=>{const b=document.createElement("button");b.className="opt-btn";b.innerHTML='<span class="opt-label">'+lbls[i]+"</span>"+t;b.onclick=()=>{document.querySelectorAll(".opt-btn").forEach(x=>x.classList.remove("selected"));b.classList.add("selected");sl=i;document.getElementById("nb").classList.add("show");document.getElementById("iv").style.display="none";};w.appendChild(b);});
+}
+function nq(){if(sl===null){document.getElementById("iv").style.display="block";return;}ans.push(sl);if(ci<questions.length-1){ci++;rQ();}else showR();}
+function showR(){
+  document.getElementById("screen-quiz").classList.remove("active");document.getElementById("screen-result").classList.add("active");document.getElementById("pf").style.width="100%";
+  const dimScores=[0,0,0,0,0],dimCounts=[0,0,0,0,0];
+  questions.forEach((q,i)=>{const di=dirMap[q.d],raw=optVals[ans[i]],scored=raw*q.dir;dimScores[di]+=(scored+2);dimCounts[di]+=1;});
+  const norm=dimScores.map((s,i)=>dimCounts[i]>0?Math.round(s/(dimCounts[i]*4)*100):50);
+  let bi=0,bd=Infinity;archs.forEach((a,i)=>{let d=0;for(let j=0;j<5;j++)d+=Math.pow(norm[j]/100*2-a.vec[j],2);if(d<bd){bd=d;bi=i;}});
+  const a=archs[bi];lastArch=a;
+  const card=document.getElementById("cardBox");card.classList.remove("flip");
+  setTimeout(()=>{document.getElementById("rc").textContent=a.code;document.getElementById("rt").textContent=a.title;document.getElementById("rg").textContent=a.sub;document.getElementById("rn").textContent="No."+(bi+1)+" / 26";document.getElementById("rd").textContent=a.desc;card.classList.add("flip");},100);
+  const tw=document.getElementById("tierRows");tw.innerHTML="";
+  DIMS.forEach((d,i)=>{const pct=norm[i],tier=pct<=20?1:pct<=40?2:pct<=60?3:pct<=80?4:5;let label;if(pct<=20)label="一级·极偏 "+d.a;else if(pct<=40)label="二级·偏 "+d.a;else if(pct<=60)label="三级·平衡";else if(pct<=80)label="四级·偏 "+d.b;else label="五级·极偏 "+d.b;const row=document.createElement("div");row.className="tier-row";row.innerHTML='<span class="tier-l">'+d.a+'</span><div class="tier-bars">'+[1,2,3,4,5].map(n=>'<div class="tier-seg'+(n===tier?" on":"")+'"></div>').join("")+'</div><span class="tier-l" style="text-align:right;min-width:52px">'+d.b+"</span>";tw.appendChild(row);const tr=document.createElement("div");tr.style.cssText="font-size:10px;color:rgba(200,175,130,0.35);text-align:center;margin-bottom:2px";tr.textContent="→ "+label;tw.appendChild(tr);});
+  const mbti=(norm[0]>=50?"I":"E")+(norm[2]>=50?"N":"S")+(norm[1]>=35?"T":"F")+(norm[3]>=50?"J":"P");lastMbti=mbti;document.getElementById("gm").textContent=mbti;document.getElementById("gs").textContent=mbtiNames[mbti]||"探索者";
+  let zbi=0,zbd=Infinity;zodiacs.forEach((z,i)=>{let d=0;for(let j=0;j<5;j++)d+=Math.pow(norm[j]/100*2-z.vec[j],2);if(d<zbd){zbd=d;zbi=i;}});const z=zodiacs[zbi];lastZodiac=z;
+  document.getElementById("zodiacVal").textContent=z.name;document.getElementById("zodiacSub").textContent=z.sym;
+  document.getElementById("qtText").textContent='"'+a.quote+'"';document.getElementById("qtAuthor").textContent=a.qBy;
+  const d=new Date(),seed=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate()+bi;const fi=seed%fortunes.length;
+  document.getElementById("fIcon").textContent=fortunes[fi].icon;document.getElementById("fBody").textContent=fortunes[fi].text;
+  const dimTexts=[norm[0]<=20?"你极度偏向外向型(E)——从社交和外部世界获取能量，越热闹越有劲。":norm[0]<=40?"你偏向外向型(E)——喜欢社交但也不排斥独处。":norm[0]<=60?"你在外向和内向之间保持平衡，能收能放。":norm[0]<=80?"你偏向内向型(I)——独处是你的充电方式。":"你极度偏向内向型(I)——内心世界能量充沛，过多的社交会让你消耗。",norm[1]<=20?"你极度偏本我驱动(ID)——直觉和欲望是你的行为指南针，有时需要理性约束。":norm[1]<=40?"你偏本我驱动(ID)——相信直觉，但也懂得克制。":norm[1]<=60?"你在冲动与理性之间找到了自己的平衡点。":norm[1]<=80?"你偏自我驱动(EG)——现实和理性约束是你做决定的基石。":"你极度偏自我驱动(EG)——极强的自控力和现实感是你最大的优势。",norm[2]<=20?"你极度偏唯物(MA)——相信物质基础和现实条件决定一切，务实到你极致。":norm[2]<=40?"你偏唯物(MA)——务实是你的底色，但不完全排斥理念的力量。":norm[2]<=60?"你在物质与理念之间持有灵活平衡的视角。":norm[2]<=80?"你偏上层(SV)——你相信思想观念和文化制度的力量。":"你极度偏上层(SV)——理念和意识形态在你看来是驱动世界的核心引擎。",norm[3]<=20?"你极度偏辩证(DI)——你相信变化和矛盾才是常态，动态中寻找进步。":norm[3]<=40?"你偏辩证(DI)——拥抱变化，但不排斥一定程度的稳定。":norm[3]<=60?"你在辩证变化和追求稳定之间达到了均衡。":norm[3]<=80?"你偏绝对(AB)——你相对偏好确定性和不变的规律。":"你极度偏绝对(AB)——追求永恒不变的终极规律是你灵魂深处的驱动。",norm[4]<=20?"你极度偏理论(TH)——先理解再行动是你的学习方式，注意不要过度分析。":norm[4]<=40?"你偏理论(TH)——你喜欢搞清楚再做，但也能动手。":norm[4]<=60?"你在理论和实践之间平衡得很好。":norm[4]<=80?"你偏实践(PR)——做中学才是你的风格，理论只是工具。":"你极度偏实践(PR)——你相信只有亲手做出来的东西才是真知。"];
+  document.getElementById("ddText").innerHTML=dimTexts.map((t,i)=>"【"+DIMS[i].label+"】<br>"+t).join("<br><br>");
+}
+function restart(){document.getElementById("screen-result").classList.remove("active");document.getElementById("screen-home").classList.add("active");ci=0;ans=[];document.getElementById("pf").style.width="0%";}
+// 分享功能
+function openShare(){
+  const urlInput=document.getElementById("shareUrlInput");
+  if(lastArch){
+    document.getElementById("scCode").textContent=lastArch.code;
+    document.getElementById("scName").textContent=lastArch.title;
+    document.getElementById("scDetail").textContent="MBTI: "+lastMbti+"("+(mbtiNames[lastMbti]||"")+") · 星座: "+lastZodiac.name;
+  }
+  document.getElementById("shareOverlay").classList.add("show");
+  document.getElementById("qrBox").innerHTML="";
+  new QRCode(document.getElementById("qrBox"),{text:urlInput.value||window.location.href.split("?")[0],width:150,height:150,colorDark:"#1a1a2e",colorLight:"#ffffff"});
+}
+function closeShare(){document.getElementById("shareOverlay").classList.remove("show");}
+function updateQR(){document.getElementById("qrBox").innerHTML="";const v=document.getElementById("shareUrlInput").value||window.location.href.split("?")[0];new QRCode(document.getElementById("qrBox"),{text:v,width:150,height:150,colorDark:"#1a1a2e",colorLight:"#ffffff"});}
+function showToast(msg){const t=document.getElementById("toast");t.textContent=msg;t.style.display="block";setTimeout(()=>t.style.display="none",2000);}
+function copyResult(){
+  if(!lastArch)return;
+  const txt="✦ 哲人塔罗 · 我的人格档案 ✦\n\n人格："+lastArch.code+" · "+lastArch.title+"\nMBTI："+lastMbti+" ("+(mbtiNames[lastMbti]||"")+")\n星座："+lastZodiac.name+" "+lastZodiac.sym+"\n\n✦ 名人赠言 ✦\n\""+lastArch.quote+"\"\n"+lastArch.qBy+"\n\n—— 来自「哲人塔罗」26型人格测评";
+  navigator.clipboard.writeText(txt).then(()=>showToast("✅ 已复制，快去微信粘贴吧！")).catch(()=>showToast("⚠️ 复制失败，请手动复制"));
+}
+function copyPageLink(){
+  const url=document.getElementById("shareUrlInput").value||window.location.href.split("?")[0];
+  navigator.clipboard.writeText("🔮 测测你的哲人塔罗人格："+url).then(()=>showToast("✅ 链接已复制，快去微信分享吧！")).catch(()=>showToast("⚠️ 复制失败"));
+}
+function copyWxLink(){
+  if(!lastArch)return;
+  const url=document.getElementById("shareUrlInput").value||window.location.href.split("?")[0];
+  const txt="【哲人塔罗人格测评】\n我测出来是"+lastArch.code+" "+lastArch.title+"！\nMBTI猜测："+lastMbti+"\n星座倾向："+lastZodiac.name+"\n\n✦ 名人赠言 ✦\n"+lastArch.quote+"\n"+lastArch.qBy+"\n\n快来测测你的哲学人格：\n"+url;
+  navigator.clipboard.writeText(txt).then(()=>showToast("✅ 微信分享文案已复制！")).catch(()=>showToast("⚠️ 复制失败"));
+}
+document.getElementById("shareOverlay").onclick=function(e){if(e.target===this)closeShare();};
+</script>
+</body></html>
+
+
